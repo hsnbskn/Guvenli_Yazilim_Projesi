@@ -1,0 +1,54 @@
+{% if user.is_authenticated %}
+<header>
+    {% if user.is_superuser %}
+    <div class="navbar navbar-expand-sm bg-primary navbar-dark">
+        <div class="container">
+            <a href="/" class="navbar-brand">Quick Note</a>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a href="/administration" class="nav-link">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/search" class="nav-link">Search</a>                        
+                </li>                
+                <li class="nav-item">
+                    <a href="{% url 'newUserPage' %}" class="nav-link">Yeni Kullanıcı Ekle</a>
+                </li>   
+                                                      
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) logout</a>
+                    <form action="{% url 'logout' %}" method="POST" id="logout">
+                        {% csrf_token %}
+                        <input type="hidden">
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% else %}
+    <div class="navbar navbar-expand-sm bg-primary navbar-dark">
+        <div class="container">
+            <a href="/" class="navbar-brand">Quick Note</a>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a href="/search" class="nav-link">Search</a>
+                </li>                
+                                       
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) logout</a>
+                    <form action="{% url 'logout' %}" method="POST" id="logout">
+                        {% csrf_token %}
+                        <input type="hidden">
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+</header>
+{% endif %}

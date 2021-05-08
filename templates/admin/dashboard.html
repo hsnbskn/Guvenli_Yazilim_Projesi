@@ -1,0 +1,129 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<br>
+
+<div class="row">
+	<div class="col-md-5">
+		<h5 class="tableheader">KAYITLI KULLANICILAR</h5>
+		<hr>
+		<div class="card card-body">
+			<a class="btn btn-primary  btn-sm btn-block" href="{% url 'newUserPage' %}">Yeni Kullanıcı Ekle</a>
+			<table class="table table-sm">
+				<tr>					
+					<th>Username</th>
+					<th>Email</th>
+					<th></th>
+				</tr>
+
+				{% for user in users %}
+					<tr id="{{user.username}}">						
+						<td>{{user.username}}</td>
+						<td>{{user.email}}</td>
+						<td><button type="button" class="btn btn-danger" selectedUser={{user.username}} id="deleteUserBtn">Sil</button></td>
+					</tr>
+				{% endfor %}
+
+			</table>
+		</div>
+	</div>
+
+	<div class="col-md-7">
+		<h5 class="tableheader">KAYITLI NOTLAR</h5>
+		<hr>
+		<div class="card card-body">
+			
+			<table class="table table-sm">
+				<tr>
+					<th>Başlık</th>
+					<th>Açıklama</th>
+					<th>Kullanıcı</th>
+					<th>Durumu</th>
+					<th></th>
+				</tr>
+
+				{% for note in notes %}
+					<tr id="{{note.id}}">
+						<td>{{note.title}}</td>
+						<td>{{note.description}}</td>
+						<td>{{note.username}}</td>
+						{% if note.is_public%}
+						<td>Herkese Açık</td>
+						{% else %}
+						<td>Özel</td>
+						{% endif %}
+						<td><button type="button" class="btn btn-danger" selectedNoteID={{note.id}} id="deleteBtn">Sil</button></td>
+						
+
+					</tr>
+				{% endfor %}
+
+		
+			</table>
+		</div>
+	</div>
+
+</div>
+
+<!-- Javascript- JQuery -->
+
+<script>
+
+	$(document).on('click','#deleteUserBtn',function(){
+        let userName = $(this).attr("selectedUser");
+        data = {
+            'username'    :   userName
+        }
+		
+		assent = confirm(userName+" kullanıcısı silinsin mi?")
+		if(assent){
+			let response = request("deleteuser","POST",data)
+			if(response){
+				$("#"+userName).fadeOut("slow");
+				location.reload();
+			}   
+		}
+		
+             
+        
+    });
+
+    $(document).on('click','#deleteBtn',function(){
+        let noteIdsi = $(this).attr("selectedNoteID");
+        data = {
+            'id'    :   noteIdsi
+        }
+		
+        let response = request("deletenote","POST",data)
+        if(response){
+            $("#"+noteIdsi).fadeOut("slow");
+        }        
+        
+    });
+
+
+    function request(url, method, args = {}){
+        args['csrfmiddlewaretoken'] = getCookie('csrftoken');
+        let response = $.ajax({url: url, async: false, method: method, dataType: 'json', data: args});
+        return response.responseJSON;
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+</script>
+
+
+{% endblock %}

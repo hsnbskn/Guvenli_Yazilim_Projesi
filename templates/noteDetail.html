@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col md-4">
+    </div>
+    <div class="col md-4">
+        <center><h1 >Not Güncelleme</h1></center>
+        <hr><br>
+        {% if user.is_staff %}
+        {% for note in notes %}
+        <form action="{% url 'updatenote' %}" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label" >Başlık</label>
+                <input type="text" class="form-control" id="title" placeholder="" name="title" value={{note.title}}>
+                
+            </div>
+            <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">Açıklama</label>
+                <textarea class="form-control" id="description" rows="3" name="description">{{note.description}}</textarea>
+            </div>
+            
+            <div class="form-check">
+                {% if note.is_public %}
+                <input class="form-check-input" type="checkbox" value="" id="is_public" name="is_public" checked>
+                {% else %}
+                <input class="form-check-input" type="checkbox" value="" id="is_public" name="is_public">
+                {% endif %}
+                <label class="form-check-label" for="flexCheckDefault">
+                    Herkes Görebilir
+                </label>
+            </div>
+            <br>
+            <input type="hidden" name="noteID" value="{{note.id}}">
+            <button type="submit" class="btn btn-primary btn-block" id="noteAdd">Güncelle</button>
+
+        </form>
+        <br><br><br>
+        {% endfor %}
+        {% else %}
+        Bu sayfaya erişim hakkınız yok!
+        {% endif %}
+    
+    </div>
+    <div class="col md-4">
+    </div>
+</div>
+
+
+{%endblock%}

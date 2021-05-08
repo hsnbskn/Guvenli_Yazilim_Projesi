@@ -1,0 +1,103 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="container-fluid">
+            <form class="d-flex">
+              <input class="form-control me-2" type="text" placeholder="Search" aria-label="Search" name="keywordArea" id="keywordArea">
+              <button class="btn btn-outline-success" type="button" id='searchBtn'>Search</button>
+            </form>
+          </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="container-fluid">
+        <table id='notesTable' class="table", width="100%">
+            <thead>
+                <tr>
+                    <th>Başlık</th>
+                    <th>Açıklama</th>      
+                    <th></th>
+                    <th>
+                    </th>                  
+                </tr>
+            </thead>
+            <tbody>                            
+            </tbody>
+        </table>
+    </div><!--END NOTE TABLE-->
+    </div>
+</div>
+
+
+
+<!-- Javascript  -->
+
+
+<script>
+$(document).on('click','#searchBtn', function(){
+  
+  let data = {
+    'keyword' : $('#keywordArea').val()
+  };
+  
+  response = request('searchnote', 'POST', data);
+  if(Object.keys(response).length) {
+    var noteTable = $('#notesTable tbody');
+    let rows;
+    noteTable.empty();
+    for(note in response){
+        let noteID = response[note].id;
+        let title = response[note].title;
+        let description = response[note].description;
+      
+        let textFields = '<tr id='+noteID+'><td>'+title+'</td><td>'+description+'</td>';
+        let deleteButton = '<td><button type="button" class="btn btn-danger" selectedNoteID='+noteID+' id=deleteBtn>Sil</button><td>';
+        let form = '<td><form action="{% url "detailnote" %}" id="detail" method="POST">';
+        let form2 = '<input type="hidden" name="noteID" value='+noteID+'>{% csrf_token %}';
+        let updateButton = '<button type="submit" class="btn btn-warning" selectedNoteID='+noteID+'>Düzenle</button></form></td><tr>';
+        let row = textFields+deleteButton+form+form2+updateButton;     
+        
+        rows += row;
+    }
+    
+    noteTable.append(rows);
+  };
+})
+
+
+</script>
+
+<script>
+
+
+
+
+  function request(url, method, args = {}){
+    args['csrfmiddlewaretoken'] = getCookie('csrftoken');
+    let response = $.ajax({url: url, async: false, method: method, dataType: 'json', data: args});
+    return response.responseJSON;
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+</script>
+
+
+
+
+{% endblock %}

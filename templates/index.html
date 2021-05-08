@@ -1,0 +1,156 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        {% if user.is_staff %}
+        <div class="col-md-4">
+            <form action="">
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1" class="form-label" >Başlık</label>
+                    <input type="text" class="form-control" id="title" placeholder="Başlık"name="title">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="description" rows="3" name="description"></textarea>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="is_public" name="is_public">
+                    <label class="form-check-label" for="flexCheckDefault">
+                        Herkes Görebilir
+                    </label>
+                </div>
+                <button type="button" class="btn btn-primary btn-block" id="noteAdd">Kaydet</button>
+            </form>
+        </div>
+        {% endif %}
+        
+        <div class="col-md-8">
+            <div class="row"><button type="submit" class="btn btn-primary btn-block" id="notelistele">Notları Listele</button></div>
+            <div class="row">
+                <div class="container-fluid half-padding">
+                    <table id='notesTable' class="table datatable display table-hover", cellspacing="0", width="100%">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>                            
+                        </tbody>
+                    </table>
+                </div><!--END NOTE TABLE-->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script>
+  $(document).on('click','#notelistele',function(){
+      let response = request("notelist", 'GET');
+      if(Object.keys(response).length) {
+          var noteTable = $('#notesTable tbody');
+          let rows;
+          noteTable.empty();
+          for(note in response){
+              let noteID = response[note].id;
+              let title = response[note].title;
+              let description = response[note].description;
+            
+              let textFields = '<tr id='+noteID+'><td>'+title+'</td><td>'+description+'</td>';
+              let deleteButton = '<td><button type="button" class="btn btn-danger" selectedNoteID='+noteID+' id=deleteBtn>Sil</button><td>';
+              let form = '<td><form action="{% url "detailnote" %}" id="detail" method="POST">';
+              let form2 = '<input type="hidden" name="noteID" value='+noteID+'>{% csrf_token %}';
+              let updateButton = '<button type="submit" class="btn btn-warning" selectedNoteID='+noteID+'>Düzenle</button></form></td><tr>';
+              let row = textFields+deleteButton+form+form2+updateButton;     
+              
+              rows += row;
+          }
+          
+          noteTable.append(rows);
+      }
+  })
+
+</script>
+
+<script>
+
+    $(document).on('click','#deleteBtn',function(){
+        let noteIdsi = $(this).attr("selectedNoteID");
+        data = {
+            'id'    :   noteIdsi
+        }
+        let response = request("deletenote","POST",data)
+        if(response){
+            $("#"+noteIdsi).fadeOut("slow");
+        }        
+        
+    });
+
+</script>
+
+
+<script>
+    
+    $(document).on('click','#updateBtn',function(){
+        let noteIdsi = $(this).attr("selectedNoteID");
+        data = {
+            'id'    :   noteIdsi
+        }
+        let response = request("detailnote","POST",data)       
+        
+    });
+
+</script>
+
+
+<script>
+    $(document).on('click','#noteAdd',function(){        
+
+        let data = {
+            'title'         :   $('#title').val(),
+            'description'   :   $('#description').val(),
+            'is_public'     :   $('#is_public').prop('checked')
+        };        
+        response = request("addnote", 'POST', data);
+        
+        $("#title").val('')
+        $("#description").val('')
+        alert(response.message)
+        
+    });
+
+
+    function request(url, method, args = {}){
+        args['csrfmiddlewaretoken'] = getCookie('csrftoken');
+        let response = $.ajax({url: url, async: false, method: method, dataType: 'json', data: args});
+        return response.responseJSON;
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+</script>
+
+{% endblock %}
+
+
