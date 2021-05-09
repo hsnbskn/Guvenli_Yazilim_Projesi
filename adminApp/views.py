@@ -8,16 +8,17 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 
 from noteApp.models import Note
+from modules.log import * 
 import json
+
 # Create your views here.
-
-
 
 def index(request):
     if request.user.is_authenticated:   
         if request.user.is_superuser:   
             return redirect('adminDashboard')  
         else:
+            applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz DASHBOARD görüntüleme girişiminde bulundu.')
             return render(request, '401Page.html')   
     else:
         return render(request,'adminLogin.html')
@@ -33,20 +34,21 @@ def adminLogin(request):
             username = request.POST['username']
             password = request.POST['password']
             user = authenticate(username=username, password=password)
-            if user and user.is_staff:
-                login(request, user)
-                print("Loged In Successfuly!")
+            if user and user.is_superuser:
+                login(request, user)                
+                loginLog('Info','<' + username + '> Uygulamaya basariyla giris yapti' )
                 return redirect('index')
             else:
-                print("Invalid username or password")
+                loginLog('Warning','<' + username + '> Hatalı giriş denemesi yapıldı.' )
                 return index(request)
         else:
             return redirect('index')
 
 
 def adminLogout(request):
-    logout(request)
-    print("logouta geldi")
+    username = request.user.username
+    logout(request)    
+    loginLog('Info','<' + username + '> Uygulamadan güvenli çıkış yaptı.' )
     return redirect('/administration')
 
 def admin_check(request):
@@ -61,12 +63,12 @@ def adminDashboard(request):
             'users' :   users,
             'notes' :   notes
         }
-        # toplam user sayısı
-        # toplam not sayısı
-        # son 10 not
-        # 
+        
+        applicationLog('Info','<' + request.user.username + '> kullanıcısı tarafından DASHBOARD görüntülendi.')
+
         return render(request, 'admin/dashboard.html', context)
     else:
+        applicationLog('Warning','<' + request.user.username + '> kullanıcısı yetkisiz DASHBOARD görüntüleme girişiminde bulundu.')
         return render(request,'401Page.html')
 
 
@@ -88,7 +90,7 @@ def createNewUser(request):
                     if not User.objects.filter(email=userData['email']).exists():
                         user = User.objects.create_user(username=userData['username'], password=userData['password'], email=userData['email'], is_staff=userData['is_staff'])
                         user.save()
-                        print('user eklendi')
+                        applicationLog('Info','<' + request.user.username + '> kullanıcısı ' + userData['username'] + ' adlı kullanıcıyı sisteme ekledi.')
                         return redirect('index')
                     else:
                         print('email zaten alinmis')
@@ -100,6 +102,7 @@ def createNewUser(request):
                 print("parolalar eslesmiyor")
                 return redirect('newUserPage')
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı tarafından yetkisiz kullanıcı ekleme girişimi yapıldı.')
         return render(request,'401page.html')
         
 
@@ -123,9 +126,11 @@ def delete_note(request):
     if request.user.is_superuser:
         if request.method == "POST":
             noteID = request.POST['id']
-            Note.objects.filter(id=noteID).delete()    
+            Note.objects.filter(id=noteID).delete()   
+            applicationLog('Info','<' + request.user.username + '> kullanıcısı tarafından ' + str(noteID) + ' ID nolu not silindi.') 
             return HttpResponse(json.dumps({'message':'note silindi.'}))
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz not silme girişiminde bulundu.')
         return render(request,'401page.html')
  
 
@@ -137,7 +142,8 @@ def delete_user(request):
             userName = request.POST['username']
             User.objects.filter(username=userName).delete()
             Note.objects.filter(username=userName).delete()
-
+            applicationLog('Info','<' + request.user.username + '> kullanıcısı tarafından ' + userName + ' adlı kullanıcı silindi.' )
             return HttpResponse(json.dumps({'message':'User and notes deleted with succesfully.'}))
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz kullanıcı silme girişiminde bulundu.')
         return render(request,'401page.html')

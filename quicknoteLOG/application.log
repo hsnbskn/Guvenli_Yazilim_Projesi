@@ -1,0 +1,14 @@
+Info -> 2021-05-09 21:44:00.308014 -> <admin> kullanıcısı tarafından DASHBOARD görüntülendi.
+Info -> 2021-05-09 21:44:26.736355 -> <admin> kullanıcısı altar adlı kullanıcıyı sisteme ekledi.
+Info -> 2021-05-09 21:44:26.856395 -> <admin> kullanıcısı tarafından DASHBOARD görüntülendi.
+Info -> 2021-05-09 21:44:42.928511 -> <admin> kullanıcısı tarafından DASHBOARD görüntülendi.
+Info -> 2021-05-09 21:44:46.557912 -> <admin> kullanıcısı tarafından altar adlı kullanıcı silindi.
+Info -> 2021-05-09 21:44:46.648172 -> <admin> kullanıcısı tarafından DASHBOARD görüntülendi.
+Warning -> 2021-05-09 21:45:09.485424 -> <personel> kullanıcısı yetkisiz DASHBOARD görüntüleme girişiminde bulundu.
+Warning -> 2021-05-09 21:45:18.238571 -> <personel> kullanıcısı yetkisiz DASHBOARD görüntüleme girişiminde bulundu.
+Warning -> 2021-05-09 21:45:20.154787 -> <personel> kullanıcısı yetkisiz DASHBOARD görüntüleme girişiminde bulundu.
+Error -> 2021-05-09 21:52:41.807445 -> <ziyaretçi> kullanıcısı yetkisiz not güncelleme girişiminde bulundu.
+Error -> 2021-05-09 21:52:52.719456 -> <ziyaretçi> kullanıcısı yetkisiz not silme girişiminde bulundu.
+Warning -> 2021-05-09 21:53:20.091611 -> <ziyaretçi> kullanıcısı yetkisiz DASHBOARD görüntüleme girişiminde bulundu.
+Info -> 2021-05-09 21:54:07.797105 -> <personel> kullanıcısı notlarda ['] araması yaptı.
+Info -> 2021-05-09 21:54:13.122576 -> <personel> kullanıcısı notlarda [' AND 1=0 UNION ALL SELECT 1,(select session_key from django_session),3,4,5,6 --] araması yaptı.

@@ -13,6 +13,7 @@ import datetime
 import sqlite3
 
 from .models import Note
+from modules.log import *
 
 
 # Create your views here.
@@ -35,16 +36,19 @@ def login(request):
             user = auth.authenticate(username=username, password=password)
             if user:
                 auth.login(request,user)
+                loginLog('Info','<' + username + '> Uygulamaya basariyla giris yapti' )
                 return redirect('/')
             else:
-                print('Access Denied!')
+                loginLog('Warning','<' + username + '> Hatalı giriş denemesi yapıldı.' )
                 return index(request)
 
         
 
 
 def logout(request):
+    username = request.user.username
     auth.logout(request)
+    loginLog('Info','<' + username + '> Uygulamadan güvenli çıkış yaptı.' )
     return render(request,"login.html")
 
 @login_required(login_url="/")
@@ -84,9 +88,10 @@ def detail_note(request):
             context = {
                 'notes'  :   note
             }
-            
+            applicationLog('Info','<' + request.user.username + '> kullanıcısı ' + note.title + ' adlı not detaylarını görüntüledi.')
             return render(request,'noteDetail.html',context)
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz not güncelleme girişiminde bulundu.')
         return render(request,'401Page.html')
        
     
@@ -107,15 +112,18 @@ def add_note(request):
                 create_date=create_date, 
                 is_public=is_public
             ).save()
-
-        newNote = {
-            'title'         :   title,
-            'description'   :   description
-        }
         
-        return HttpResponse(json.dumps({'message':'Başarıyla Eklendi.'}))
+            newNote = {
+                'title'         :   title,
+                'description'   :   description
+            }
+
+            applicationLog('Info','<' + username + '> kullanıcısı ' + note.title + ' adlı not ekledi.')
+
+            return HttpResponse(json.dumps({'message':'Başarıyla Eklendi.'}))
     
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz not ekleme girişiminde bulundu.')
         return render(request, '401Page.html')
 
 
@@ -135,9 +143,12 @@ def update_note(request):
                 is_public = is_public
             )
 
+            applicationLog('Info','<' + request.user.username + '> kullanıcısı ' + title + 'notunu güncelledi.')
+            
             return redirect('/')
 
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz not güncelleme girişiminde bulundu.')
         return render(request,'401Page.html')
 
 @login_required(login_url='/')
@@ -145,10 +156,12 @@ def delete_note(request):
     if request.user.is_staff:  
         if request.method == "POST":
             noteID = request.POST['id']
-            Note.objects.filter(id=noteID).delete()    
+            Note.objects.filter(id=noteID).delete()  
+            applicationLog('Info','<' + request.user.username + '> kullanıcısı' + str(noteID) + 'ID nolu notu sildi.')  
             return HttpResponse(json.dumps({'message':'note silindi.'}))
     
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz not silme girişiminde bulundu.')
         return render(request,'401Page.html')
 
 
@@ -158,6 +171,7 @@ def search_page(request):
         return render(request, 'search.html')
 
     else:
+        applicationLog('Error','<' + request.user.username + '> kullanıcısı yetkisiz not arama girişiminde bulundu.')
         return render(request,'401Page.html')
 
 @login_required(login_url='/')
@@ -173,10 +187,10 @@ def search_note(request):
 
             
             sqlQuery = "SELECT * FROM noteApp_note WHERE  title LIKE '%"+keyword+"%'"
-            print(sqlQuery)
+            
             notes = dbCursor.execute(sqlQuery)
 
-            print("-"*50)
+            
             noteObj = []
             for note in notes:
                 note = {
@@ -188,11 +202,9 @@ def search_note(request):
                     'is_public' :   note[5]
                 }
                 noteObj.append(note)
-            print("-"*20)
-            print(noteObj)
-            print("-"*20)
+            
             dbConnect.close()
-
+            applicationLog('Info','<' + request.user.username + '> kullanıcısı notlarda [' + request.POST['keyword'] + '] araması yaptı.' )
             return HttpResponse(json.dumps(noteObj))
     
     else:

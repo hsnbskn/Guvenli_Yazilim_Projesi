@@ -1,0 +1,12 @@
+Info -> 2021-05-09 21:44:00.127774 -> <admin> Uygulamaya basariyla giris yapti
+Info -> 2021-05-09 21:44:33.207517 -> <admin> Uygulamadan güvenli çıkış yaptı.
+Info -> 2021-05-09 21:44:40.499236 -> <admin> Uygulamaya basariyla giris yapti
+Info -> 2021-05-09 21:44:51.759745 -> <admin> Uygulamadan güvenli çıkış yaptı.
+Info -> 2021-05-09 21:44:57.825622 -> <personel> Uygulamaya basariyla giris yapti
+Info -> 2021-05-09 21:45:25.729357 -> <personel> Uygulamadan güvenli çıkış yaptı.
+Warning -> 2021-05-09 21:50:34.172246 -> <ziyaretçi> Hatalı giriş denemesi yapıldı.
+Warning -> 2021-05-09 21:50:58.872154 -> <'> Hatalı giriş denemesi yapıldı.
+Info -> 2021-05-09 21:51:19.633515 -> <ziyaretçi> Uygulamaya basariyla giris yapti
+Info -> 2021-05-09 21:53:48.292886 -> <ziyaretçi> Uygulamadan güvenli çıkış yaptı.
+Info -> 2021-05-09 21:53:54.427996 -> <personel> Uygulamaya basariyla giris yapti
+Info -> 2021-05-09 21:55:03.429023 -> <personel> Uygulamadan güvenli çıkış yaptı.
