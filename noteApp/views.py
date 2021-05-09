@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.conf import settings
+from django.db.models import Q
 
 import json, os
 import datetime
@@ -48,7 +49,17 @@ def logout(request):
 
 @login_required(login_url="/")
 def list_notes(request):    #-----------------------------------herkese kendi notu dönsün public hariç.
-    noteList = Note.objects.all()
+
+    if request.user.is_superuser:
+        noteList = Note.objects.all()
+    
+    elif request.user.is_staff:                
+        userName = request.user.username        
+        noteList = Note.objects.filter(Q(username=userName) | Q(is_public=True))       
+    
+    else:
+        noteList = Note.objects.filter(is_public=True)
+
     noteObj = []
 
     for note in noteList:
