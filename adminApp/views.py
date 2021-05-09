@@ -15,16 +15,16 @@ import json
 
 def index(request):
     if request.user.is_authenticated:   
-        if request.user.is_staff:   #superusersa erişsin
-            return redirect('adminDashboard')  #---
+        if request.user.is_superuser:   
+            return redirect('adminDashboard')  
         else:
-            return render(request, '401Page.html')   #---
+            return render(request, '401Page.html')   
     else:
         return render(request,'adminLogin.html')
 
-def adminLogin(request):    #---superuser değilse indexe gidemesin
+def adminLogin(request):
     if request.user.is_authenticated:
-        if request.user.is_staff:   #aslında gerek yok yukarıda kontrol ediyor
+        if request.user.is_staff:   
             return redirect('index')
         else:
             return render(request,'401Page.html')
@@ -54,46 +54,56 @@ def admin_check(request):
 
 @login_required(login_url='/administration')
 def adminDashboard(request):
-    users = User.objects.all()
-    notes = Note.objects.all()
-    context = {
-        'users' :   users,
-        'notes' :   notes
-    }
-    # toplam user sayısı
-    # toplam not sayısı
-    # son 10 not
-    # 
-    return render(request, 'admin/dashboard.html', context)
+    if request.user.is_superuser:
+        users = User.objects.all()
+        notes = Note.objects.all()
+        context = {
+            'users' :   users,
+            'notes' :   notes
+        }
+        # toplam user sayısı
+        # toplam not sayısı
+        # son 10 not
+        # 
+        return render(request, 'admin/dashboard.html', context)
+    else:
+        return render(request,'401Page.html')
 
-@login_required(login_url='/')
+
+@login_required(login_url='/administration')
 def newUserPage(request):
-    return render(request,'admin/newUserPage.html')
+    if request.user.is_superuser:
+        return render(request,'admin/newUserPage.html')
+    else:
+        return render(request,'401page.html')
 
 
-@login_required(login_url='/')
+@login_required(login_url='/administration')
 def createNewUser(request):
-    if request.method == 'POST':
-        userData = parseUserData(request)
-        if userData['password'] == userData['repassword']:
-            if not User.objects.filter(username = userData['username']).exists():
-                if not User.objects.filter(email=userData['email']).exists():
-                    user = User.objects.create_user(username=userData['username'], password=userData['password'], email=userData['email'], is_staff=userData['is_staff'])
-                    user.save()
-                    print('user eklendi')
-                    return redirect('index')
+    if request.user.is_superuser:
+        if request.method == 'POST':
+            userData = parseUserData(request)
+            if userData['password'] == userData['repassword']:
+                if not User.objects.filter(username = userData['username']).exists():
+                    if not User.objects.filter(email=userData['email']).exists():
+                        user = User.objects.create_user(username=userData['username'], password=userData['password'], email=userData['email'], is_staff=userData['is_staff'])
+                        user.save()
+                        print('user eklendi')
+                        return redirect('index')
+                    else:
+                        print('email zaten alinmis')
+                        return redirect('newUserPage')
                 else:
-                    print('email zaten alinmis')
-                    return redirect('newUserPage')
+                    print('kullanici zaten var.')
+                    return redirect('newUserPage')          
             else:
-                print('kullanici zaten var.')
-                return redirect('newUserPage')          
-        else:
-            print("parolalar eslesmiyor")
-            return redirect('newUserPage')
+                print("parolalar eslesmiyor")
+                return redirect('newUserPage')
+    else:
+        return render(request,'401page.html')
         
 
-
+@login_required(login_url='/administraition')
 def parseUserData(request):
     userData = {
         'username'  :   request.POST['username'],
@@ -108,18 +118,26 @@ def parseUserData(request):
     return userData
 
 
+@login_required(login_url='/administraition')
+def delete_note(request):
+    if request.user.is_superuser:
+        if request.method == "POST":
+            noteID = request.POST['id']
+            Note.objects.filter(id=noteID).delete()    
+            return HttpResponse(json.dumps({'message':'note silindi.'}))
+    else:
+        return render(request,'401page.html')
+ 
 
-def delete_note(request):    
-    if request.method == "POST":
-        noteID = request.POST['id']
-        Note.objects.filter(id=noteID).delete()    
-        return HttpResponse(json.dumps({'message':'note silindi.'}))
 
-
+@login_required(login_url='/administraition')
 def delete_user(request):
-    if request.method == "POST":
-        userName = request.POST['username']
-        User.objects.filter(username=userName).delete()
-        Note.objects.filter(username=userName).delete()
+    if request.user.is_superuser:
+        if request.method == "POST":
+            userName = request.POST['username']
+            User.objects.filter(username=userName).delete()
+            Note.objects.filter(username=userName).delete()
 
-        return HttpResponse(json.dumps({'message':'User and notes deleted with succesfully.'}))
+            return HttpResponse(json.dumps({'message':'User and notes deleted with succesfully.'}))
+    else:
+        return render(request,'401page.html')

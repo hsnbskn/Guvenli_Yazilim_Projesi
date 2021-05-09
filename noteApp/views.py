@@ -46,8 +46,8 @@ def logout(request):
     auth.logout(request)
     return render(request,"login.html")
 
-
-def list_notes(request):
+@login_required(login_url="/")
+def list_notes(request):    #-----------------------------------herkese kendi notu dönsün public hariç.
     noteList = Note.objects.all()
     noteObj = []
 
@@ -64,101 +64,124 @@ def list_notes(request):
 
     return HttpResponse(json.dumps(noteObj))
 
-
-def detail_note(request):    
-    if request.method == 'POST':
-        note_id = request.POST['noteID']
-        note = Note.objects.filter(id=note_id)
-        context = {
-            'notes'  :   note
-        }
-        
-        return render(request,'noteDetail.html',context)
+@login_required(login_url='/')
+def detail_note(request):
+    if request.user.is_staff:
+        if request.method == 'POST':
+            note_id = request.POST['noteID']
+            note = Note.objects.filter(id=note_id)
+            context = {
+                'notes'  :   note
+            }
+            
+            return render(request,'noteDetail.html',context)
+    else:
+        return render(request,'401Page.html')
        
     
-
+@login_required(login_url='/')
 def add_note(request):
-    if request.method == 'POST':
-        title = request.POST['title']
-        description = request.POST['description']
-        is_public = request.POST['is_public'].capitalize()
-        username = request.user.username
-        create_date = datetime.datetime.now()
-        #hardening gerekli
-        Note(
-            title=title, 
-            description=description, 
-            username=username, 
-            create_date=create_date, 
-            is_public=is_public
-        ).save()
+    if request.user.is_staff:
+        if request.method == 'POST':
+            title = request.POST['title']
+            description = request.POST['description']
+            is_public = request.POST['is_public'].capitalize()
+            username = request.user.username
+            create_date = datetime.datetime.now()
+            #hardening gerekli
+            Note(
+                title=title, 
+                description=description, 
+                username=username, 
+                create_date=create_date, 
+                is_public=is_public
+            ).save()
 
-    newNote = {
-        'title'         :   title,
-        'description'   :   description
-    }
-    
-    return HttpResponse(json.dumps({'message':'Başarıyla Eklendi.'}))
-
-
-    
-
-def update_note(request):
-    if request.method == 'POST':
-        noteID = request.POST['noteID']
-        title = request.POST['title']
-        description = request.POST['description']        
-        is_public = ('is_public' in request.POST)
-
-        Note.objects.filter(id=noteID).update(
-            title = title,
-            description = description,
-            is_public = is_public
-        )
-
-        return redirect('/')
-
-
-def delete_note(request):    
-    if request.method == "POST":
-        noteID = request.POST['id']
-        Note.objects.filter(id=noteID).delete()    
-        return HttpResponse(json.dumps({'message':'note silindi.'}))
-
-def search_page(request):
-    return render(request, 'search.html')
-
-def search_note(request):  
-    
-    if request.method == "POST":
-        BASE_DIR = getattr(settings,"BASE_DIR", None)
-        db_path = BASE_DIR + '/db.sqlite3'
-
-        dbConnect = sqlite3.connect(db_path)
-        dbCursor = dbConnect.cursor()
-        keyword = request.POST['keyword']
+        newNote = {
+            'title'         :   title,
+            'description'   :   description
+        }
         
-        sqlQuery = "SELECT * FROM noteApp_note WHERE  title LIKE '%"+keyword+"%'"
-        print(sqlQuery)
-        notes = dbCursor.execute(sqlQuery)
-
-        print("-"*50)
-        noteObj = []
-        for note in notes:
-            note = {
-                'id'        :   note[0],
-                'title'     :   str(note[1]),
-                'description':  str(note[2]),
-                'username'  :   str(note[3]),
-                'create_date':  str(note[4]),
-                'is_public' :   note[5]
-            }
-            noteObj.append(note)
-        print("-"*20)
-        print(noteObj)
-        print("-"*20)
-        dbConnect.close()
-
-        return HttpResponse(json.dumps(noteObj))
+        return HttpResponse(json.dumps({'message':'Başarıyla Eklendi.'}))
+    
+    else:
+        return render(request, '401Page.html')
 
 
+    
+@login_required(login_url='/')
+def update_note(request):
+    if request.user.is_staff:
+        if request.method == 'POST':
+            noteID = request.POST['noteID']
+            title = request.POST['title']
+            description = request.POST['description']        
+            is_public = ('is_public' in request.POST)
+
+            Note.objects.filter(id=noteID).update(
+                title = title,
+                description = description,
+                is_public = is_public
+            )
+
+            return redirect('/')
+
+    else:
+        return render(request,'401Page.html')
+
+@login_required(login_url='/')
+def delete_note(request):  
+    if request.user.is_staff:  
+        if request.method == "POST":
+            noteID = request.POST['id']
+            Note.objects.filter(id=noteID).delete()    
+            return HttpResponse(json.dumps({'message':'note silindi.'}))
+    
+    else:
+        return render(request,'401Page.html')
+
+
+@login_required(login_url='/')
+def search_page(request):
+    if request.user.is_staff:
+        return render(request, 'search.html')
+
+    else:
+        return render(request,'401Page.html')
+
+@login_required(login_url='/')
+def search_note(request):  
+    if request.user.is_staff:
+        if request.method == "POST":
+            BASE_DIR = getattr(settings,"BASE_DIR", None)
+            db_path = BASE_DIR + '/db.sqlite3'
+
+            dbConnect = sqlite3.connect(db_path)
+            dbCursor = dbConnect.cursor()
+            keyword = request.POST['keyword']
+            
+            sqlQuery = "SELECT * FROM noteApp_note WHERE  title LIKE '%"+keyword+"%'"
+            print(sqlQuery)
+            notes = dbCursor.execute(sqlQuery)
+
+            print("-"*50)
+            noteObj = []
+            for note in notes:
+                note = {
+                    'id'        :   note[0],
+                    'title'     :   str(note[1]),
+                    'description':  str(note[2]),
+                    'username'  :   str(note[3]),
+                    'create_date':  str(note[4]),
+                    'is_public' :   note[5]
+                }
+                noteObj.append(note)
+            print("-"*20)
+            print(noteObj)
+            print("-"*20)
+            dbConnect.close()
+
+            return HttpResponse(json.dumps(noteObj))
+    
+    else:
+        return render(request,'401Page.html')

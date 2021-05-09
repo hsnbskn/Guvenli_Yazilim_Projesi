@@ -18,7 +18,7 @@
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) logout</a>
+                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) Çıkış</a>
                     <form action="{% url 'logout' %}" method="POST" id="logout">
                         {% csrf_token %}
                         <input type="hidden">
@@ -27,7 +27,7 @@
             </ul>
         </div>
     </div>
-    {% else %}
+    {% elif user.is_staff %}
     <div class="navbar navbar-expand-sm bg-primary navbar-dark">
         <div class="container">
             <a href="/" class="navbar-brand">Quick Note</a>
@@ -39,7 +39,22 @@
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) logout</a>
+                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) Çıkış</a>
+                    <form action="{% url 'logout' %}" method="POST" id="logout">
+                        {% csrf_token %}
+                        <input type="hidden">
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% else %}
+    <div class="navbar navbar-expand-sm bg-primary navbar-dark">
+        <div class="container">
+            <a href="/" class="navbar-brand">Quick Note</a>            
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a href="javascript:{document.getElementById('logout').submit()}" class="nav-link">({{user.username}}) Çıkış </a>
                     <form action="{% url 'logout' %}" method="POST" id="logout">
                         {% csrf_token %}
                         <input type="hidden">
