@@ -83,12 +83,12 @@ def detail_note(request):
 def add_note(request):
     if request.user.is_staff:
         if request.method == 'POST':
-            title = request.POST['title']
-            description = request.POST['description']
-            is_public = request.POST['is_public'].capitalize()
-            username = request.user.username
+            title = htmlEscape(request.POST['title'], 'encode')
+            description = htmlEscape(request.POST['description'], 'encode')
+            is_public = htmlEscape(request.POST['is_public'].capitalize(), 'encode')
+            username = htmlEscape(request.user.username, 'encode')
             create_date = datetime.datetime.now()
-            #hardening gerekli
+            
             Note(
                 title=title, 
                 description=description, 
@@ -114,8 +114,8 @@ def update_note(request):
     if request.user.is_staff:
         if request.method == 'POST':
             noteID = request.POST['noteID']
-            title = request.POST['title']
-            description = request.POST['description']        
+            title = htmlEscape(request.POST['title'], 'encode')
+            description = htmlEscape(request.POST['description'], 'encode')
             is_public = ('is_public' in request.POST)
 
             Note.objects.filter(id=noteID).update(
@@ -196,3 +196,26 @@ def cleanSpecialChar(string):
             keyword+=char
     
     return keyword
+
+def htmlEscape(string, proc):
+    codes = {
+    '<' :   '&lt',
+    '>' :   '&gt',
+    '"' :   '&quot',
+    "'" :   '&#x27'
+    }
+
+    if proc == 'encode':
+        for key in codes.keys():
+            string = string.replace(key, codes[key])
+    
+    if proc == 'decode':
+        for key in codes.keys():
+            string = string.replace(codes[key], key)
+
+    return string
+
+
+
+
+    
