@@ -158,7 +158,8 @@ def search_note(request):
 
             dbConnect = sqlite3.connect(db_path)
             dbCursor = dbConnect.cursor()
-            keyword = request.POST['keyword']
+            keyword = cleanSpecialChar(request.POST['keyword'])
+
             
             sqlQuery = "SELECT * FROM noteApp_note WHERE  title LIKE '%"+keyword+"%'"
             print(sqlQuery)
@@ -185,3 +186,13 @@ def search_note(request):
     
     else:
         return render(request,'401Page.html')
+
+
+
+def cleanSpecialChar(string):
+    keyword = ''
+    for char in string:
+        if char.isalnum():
+            keyword+=char
+    
+    return keyword
